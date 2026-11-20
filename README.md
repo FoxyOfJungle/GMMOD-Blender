@@ -1,7 +1,7 @@
 
 # GameMaker 8 Model Importer/Exporter for Blender
 
-A Blender add-on that imports and exports the 3D model format used by GameMaker 8, the one you load with `d3d_model_load()` and save with `d3d_model_save()`. The files usually end in `.gmmod` or `.d3d`.
+A Blender add-on that imports and exports the 3D model format used by GameMaker 8, the one you load with `d3d_model_load()` and save with `d3d_model_save()`. The files usually end in `.gmmod`, `.d3d` or `.mod`.
 
 It reads and writes vertex positions, normals, texture coordinates and vertex color with alpha.
 

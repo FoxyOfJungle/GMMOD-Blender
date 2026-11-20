@@ -1,9 +1,9 @@
 bl_info = {
-    "name": "GameMaker 8 Model Format (.gmmod/.d3d)",
+    "name": "GameMaker 8 Model Format (.gmmod/.d3d/.mod)",
     "author": "Mozart Junior (@foxyofjungle)",
     "version": (1, 0, 0),
     "blender": (5, 2, 0),
-    "location": "File > Import/Export > GameMaker 8 Model (.gmmod/.d3d)",
+    "location": "File > Import/Export > GameMaker 8 Model (.gmmod/.d3d/.mod)",
     "description": "Import and export GameMaker 8 3D models.",
     "category": "Import-Export",
 }
@@ -137,7 +137,7 @@ def build_mesh(model, name, scale=1.0, flip_v=True, flip_winding=False, merge=Tr
             if idx is not None:
                 return idx
             vmap[pos] = len(co)
-        co.append((pos[0] * scale, pos[1] * scale, pos[2] * scale))
+        co.append((pos[0] * scale, -pos[1] * scale, pos[2] * scale))
         return len(co) - 1
 
     faces = []
@@ -147,7 +147,7 @@ def build_mesh(model, name, scale=1.0, flip_v=True, flip_winding=False, merge=Tr
     degenerate = 0
 
     for tri in model.triangles:
-        if flip_winding:
+        if not flip_winding:
             tri = (tri[0], tri[2], tri[1])
         ids = (vid(tri[0][0]), vid(tri[1][0]), vid(tri[2][0]))
         if merge and (ids[0] == ids[1] or ids[1] == ids[2] or ids[0] == ids[2]):
@@ -156,7 +156,7 @@ def build_mesh(model, name, scale=1.0, flip_v=True, flip_winding=False, merge=Tr
         faces.append(ids)
         for _pos, nor, uv, col in tri:
             if model.has_normals:
-                loop_nor.append(nor if nor is not None else (0.0, 0.0, 0.0))
+                loop_nor.append((nor[0], -nor[1], nor[2]) if nor is not None else (0.0, 0.0, 0.0))
             if model.has_uvs:
                 if uv is None:
                     loop_uv.append((0.0, 0.0))
@@ -351,6 +351,7 @@ def _extract_object(obj, depsgraph, opts):
         mat = np.array(obj.matrix_world if opts["transform"] else np.identity(4),
                        dtype=np.float64)
         mat[:3, :] *= opts["scale"]
+        mat = np.diag([1.0, -1.0, 1.0, 1.0]) @ mat
         m3 = mat[:3, :3]
         flip = opts["flip_winding"]
         if np.linalg.det(m3) < 0.0:
@@ -640,7 +641,7 @@ class IO_FH_gmmod(bpy.types.FileHandler):
     bl_label = "GameMaker 8 Model"
     bl_import_operator = "import_scene.gmmod"
     bl_export_operator = "export_scene.gmmod"
-    bl_file_extensions = ".gmmod;.d3d"
+    bl_file_extensions = ".gmmod;.d3d;.mod"
 
     @classmethod
     def poll_drop(cls, context):
@@ -652,10 +653,10 @@ class IO_FH_gmmod(bpy.types.FileHandler):
 #region /////////////////////////// REGISTER //////////////////////////////////
 
 def menu_func_import(self, context):
-    self.layout.operator(IMPORT_OT_gmmod.bl_idname, text="GameMaker 8 Model (.gmmod/.d3d)")
+    self.layout.operator(IMPORT_OT_gmmod.bl_idname, text="GameMaker 8 Model (.gmmod/.d3d/.mod)")
 
 def menu_func_export(self, context):
-    self.layout.operator(EXPORT_OT_gmmod.bl_idname, text="GameMaker 8 Model (.gmmod/.d3d)")
+    self.layout.operator(EXPORT_OT_gmmod.bl_idname, text="GameMaker 8 Model (.gmmod/.d3d/.mod)")
 
 classes = (
     IMPORT_OT_gmmod,
